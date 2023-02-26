@@ -3,6 +3,15 @@
 This repository contains example of a custom Strimzi Pod Security Provider.
 It is used in a blog post on the Strimzi blog.
 
+## Examples
+
+This repository contains two examples of custom providers:
+* `CustomPodSecurityProvider` is written from scratch by implementing the `PodSecurityProvider` interface.
+  It runs all containers with read-only root filesystem.
+* `CustomPodSecurityProvider2` is written by extending the Strimzi _restricted_ provider.
+  But unlike the original restricted provider, it allows to run the Kafka Connect Builds using the Kaniko builder which requires to run as root.
+  All other Pods / containers are using the restricted policies.
+
 ## Building the project
 
 ### Prerequisites
@@ -19,32 +28,24 @@ It is used in a blog post on the Strimzi blog.
   ```
   docker build -t quay.io/scholzj/operator:custom-providers .
   ```
-  _(Note: Update the command to use your registry)_
+  _(Note: Update the command to use your container registry and repository.)_
+* Push the image to the repository:
+  ```
+  docker push quay.io/scholzj/operator:custom-providers
+  ```
+  _(Note: Update the command to use your container registry and repository.)_
 
-This repository contains some simple examples of how to use the Strimzi `api` module.
-The examples are currently based on the Strimzi 0.33.2 release.
-The `api` module is available in [Maven repositories](https://mvnrepository.com/artifact/io.strimzi/api), so it can be easily integrated into your Java applications. 
-It can be used together with the [Fabric8 Kubernetes Client](https://github.com/fabric8io/kubernetes-client) to manage Strimzi resources in your Kubernetes cluster.
+### Deploy it
 
-## Installation examples
-
-* `Install`: Installs the Strimzi Cluster Operator
-* `Uninstall`: Uninstalls the Strimzi Cluster Operator
-
-## Kafka examples
-
-* `CreateKafka`: Deploys Kafka cluster
-* `CreateKafka`: Updates the Kafka cluster and waits for the rolling update to complete
-* `DeleteKafka`: Deletes the Kafka cluster
-
-## Connect examples
-
-* `CreateConnectAndConnector`: Deploys Kafka Connect, Kafka topic and two connectors 
-* `DeleteConnectAndConnector`: Delete Kafka Connect, Kafka topic and two connectors
-* `PauseConnector`: Example which pauses an existing Kafka Connect connector
-* `UnpauseConnector`: Example which pauses an existing Kafka Connect connector
-
-## Cruise Control examples
-
-* `CreateRebalance`: Triggers and approves cluster rebalance using Cruise Control and the `KafkaRebalance` custom resource 
-* `DeleteRebalance`: Deletes the `KafkaRebalance` resource after a rebalance
+* Use the newly built image in the Strimzi Cluster Operator deployment
+* In the Strimzi Cluster Operator Deployment, set the `JAVA_CLASSPATH` environment variable to `lib/custom-pod-security-providers-1.0-SNAPSHOT.jar` (supported only from Strimzi 0.34.0):
+  ```
+        - name: JAVA_CLASSPATH
+          value: lib/custom-pod-security-providers-1.0-SNAPSHOT.jar
+  ```
+* And configure the Pod Security Provider.
+  For example:
+  ```
+        - name: STRIMZI_POD_SECURITY_PROVIDER_CLASS
+          value: cz.scholz.providers.CustomPodSecurityProvider
+  ```
