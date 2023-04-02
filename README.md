@@ -1,15 +1,15 @@
 # Custom Strimzi Pod Security Providers
 
-This repository contains example of a custom Strimzi Pod Security Provider.
+This repository contains an example of a custom Strimzi Pod Security Provider.
 It is used in a blog post on the Strimzi blog.
 
 ## Examples
 
 This repository contains two examples of custom providers:
 * `CustomPodSecurityProvider` is written from scratch by implementing the `PodSecurityProvider` interface.
-  It runs all containers with read-only root filesystem.
+  It runs all containers with a read-only root filesystem.
 * `CustomPodSecurityProvider2` is written by extending the Strimzi _restricted_ provider.
-  But unlike the original restricted provider, it allows to run the Kafka Connect Builds using the Kaniko builder which requires to run as root.
+  But unlike the original restricted provider, it allows to run Kafka Connect Build using the Kaniko builder which requires running as root.
   All other Pods / containers are using the restricted policies.
 
 ## Building the project
@@ -55,3 +55,24 @@ This repository contains two examples of custom providers:
         - name: STRIMZI_POD_SECURITY_PROVIDER_CLASS
           value: cz.scholz.providers.CustomPodSecurityProvider
   ```
+
+### Use it
+
+Deploy a Kafka cluster using one of the [Strimzi examples](https://github.com/strimzi/strimzi-kafka-operator/tree/main/examples).
+Once it is deployed, you can check its Security Context and you should see that all containers will have the read-only root filesystem option enabled.
+For example:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-cluster-kafka-0
+  # ...
+spec:
+  # ...
+  containers:
+    name: kafka
+    securityContext:
+      readOnlyRootFilesystem: true
+    # ...
+```
