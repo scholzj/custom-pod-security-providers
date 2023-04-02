@@ -21,6 +21,9 @@ This repository contains two examples of custom providers:
 ### Java build
 
 * Build the Java JAR file with the custom policies
+  ```
+  mvn clean package
+  ```
 
 ### Docker build
 
